@@ -19,14 +19,13 @@ jobs:
 
     runs-on: ubuntu-latest
     services:
-      postgres:
-        image: postgres:12.2
+      postgres_db:
+        image: postgres
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: online_banking_user_db
         ports:
-          # will assign a random free host port
           - 5432:5432
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
@@ -50,10 +49,3 @@ jobs:
         dockerfile: Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-
-    - name: Start PostgreSQL container
-      uses: docker/setup-buildx-action@v2
-    - name: Run PostgreSQL
-      run: |
-        docker run --name postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=online_banking_user_db -p 5432:5432 -d postgres
-      ports: 5432:5432

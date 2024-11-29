@@ -18,7 +18,18 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    services:
+      postgres:
+        image: postgres:12.2
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: online_banking_user_db
+        ports:
+          # will assign a random free host port
+          - 5432/tcp
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 17
@@ -28,7 +39,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: mvn clean install
 
     - name: Build & push Docker image
       uses: mr-smithers-excellent/docker-build-push@v6
@@ -39,3 +50,10 @@ jobs:
         dockerfile: Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Start PostgreSQL container
+      uses: docker/setup-buildx-action@v2
+    - name: Run PostgreSQL
+      run: |
+        docker run --name postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=online_banking_user_db -p 5432:5432 -d postgres
+      ports: 5432:5432

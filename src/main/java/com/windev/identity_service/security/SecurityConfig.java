@@ -60,7 +60,8 @@ public class SecurityConfig {
                         httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
-                        authorizationManagerRequestMatcherRegistry.requestMatchers("/api/v1/auth/**").permitAll().anyRequest().authenticated())
+                        authorizationManagerRequestMatcherRegistry.requestMatchers("/api/v1/auth/login",
+                                "/api/v1/auth/signup").permitAll().anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         ;
 

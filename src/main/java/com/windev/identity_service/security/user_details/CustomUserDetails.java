@@ -5,6 +5,7 @@
 
 package com.windev.identity_service.security.user_details;
 
+import com.windev.identity_service.dto.UserDTO;
 import com.windev.identity_service.entity.User;
 import java.util.Collection;
 import java.util.List;
@@ -30,7 +31,7 @@ public class CustomUserDetails implements UserDetails {
         this.password = user.getPassword();
     }
 
-    public static CustomUserDetails build(User user) {
+    public static CustomUserDetails build(UserDTO user) {
         List<GrantedAuthority> authorities =
                 user.getRoles().stream()
                         .map(role -> new SimpleGrantedAuthority(

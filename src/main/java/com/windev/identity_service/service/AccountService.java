@@ -10,4 +10,6 @@ public interface AccountService {
     AccountDTO createAccount(CreateAccountRequest request);
     AccountDTO findByAccountNumber(String accountNumber);
     AccountDTO deposit(DepositRequest request);
+    AccountDTO withdraw(DepositRequest request);
+
 }

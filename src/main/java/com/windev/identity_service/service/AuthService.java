@@ -12,4 +12,5 @@ public interface AuthService {
     String login(SignInRequest request);
     UserDTO register(SignUpRequest request);
     CustomUserDetails currentUser();
+    void logout();
 }

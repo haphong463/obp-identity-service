@@ -39,6 +39,7 @@ public class AccountServiceImpl implements AccountService {
     private UserRepository userRepository;
 
     @Override
+    @Transactional
     public AccountDTO createAccount(CreateAccountRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
@@ -75,6 +76,23 @@ public class AccountServiceImpl implements AccountService {
         BigDecimal currentBalance = existingAccount.getBalance();
 
         BigDecimal updatedBalance = currentBalance.add(request.getAmount());
+
+        existingAccount.setBalance(updatedBalance);
+
+        Account updatedAccount = accountRepository.save(existingAccount);
+        return accountMapper.toAccountDTO(updatedAccount);
+    }
+
+    @Override
+    @Transactional
+    public AccountDTO withdraw(DepositRequest request) {
+        Account existingAccount = accountRepository.findByAccountNumber(request.getAccountNumber())
+                .orElseThrow(() -> new AccountNotFoundException("Account with code: " + request.getAccountNumber() +
+                        " not found."));
+
+        BigDecimal currentBalance = existingAccount.getBalance();
+
+        BigDecimal updatedBalance = currentBalance.subtract(request.getAmount());
 
         existingAccount.setBalance(updatedBalance);
 

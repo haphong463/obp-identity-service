@@ -5,6 +5,8 @@
 
 package com.windev.identity_service.security.jwt;
 
+import com.windev.identity_service.constant.AuthConstant;
+import com.windev.identity_service.service.cache.RedisService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,6 +31,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    private RedisService redisService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -38,6 +42,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if(token != null && jwtTokenProvider.validateToken(token)){
                 String username = jwtTokenProvider.getUsernameFromJWT(token);
 
+                String redisKey = AuthConstant.TOKEN_PREFIX + username;
+                String cachedToken = redisService.get(redisKey, String.class).get();
+
+                if(cachedToken == null || !cachedToken.equals(token)){
+                    log.warn("Token is invalid/ disabled.");
+                    SecurityContextHolder.clearContext();
+                    filterChain.doFilter(request,response);
+                    return;
+                }
+
+
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -45,7 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
         }catch(Exception e){
-            log.error("doFilterInternal() --> error filter: {}", e.getMessage());
+            log.error("doFilterInternal() --> Unable to authenticate user: {}", e.getMessage());
         }
         filterChain.doFilter(request, response);
     }

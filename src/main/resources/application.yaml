@@ -3,10 +3,27 @@ spring:
     url: jdbc:postgresql://localhost:5432/online_banking_user_db
     username: postgres
     password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 10
+      idle-timeout: 30000
+      pool-name: HikariPool-1
+      max-lifetime: 1800000
+      connection-timeout: 30000
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 0
+    timeout: 5000
+  cache:
+    type: redis
+
 app:
   jwt:
     secret: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437

@@ -38,4 +38,14 @@ public class AuthController {
     public ResponseEntity<ApiResponse<CustomUserDetails>> currentUser() {
         return new ResponseEntity<>(new ApiResponse<>(authService.currentUser(), HttpStatus.OK.value()), HttpStatus.OK);
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<String>> logout() {
+        String message = "Logged out.";
+
+        authService.logout();
+
+        return new ResponseEntity<>(new ApiResponse<>(message, HttpStatus.NO_CONTENT.value()),
+                HttpStatus.NO_CONTENT);
+    }
 }

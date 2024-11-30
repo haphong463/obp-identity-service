@@ -5,9 +5,11 @@
 
 package com.windev.identity_service.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.windev.identity_service.dto.AccountDTO;
 import com.windev.identity_service.entity.Account;
 import com.windev.identity_service.entity.User;
+import com.windev.identity_service.event.CreateTransactionEvent;
 import com.windev.identity_service.exception.AccountNotFoundException;
 import com.windev.identity_service.mapper.AccountMapper;
 import com.windev.identity_service.payload.request.CreateAccountRequest;
@@ -19,6 +21,7 @@ import com.windev.identity_service.service.AccountService;
 import java.math.BigDecimal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -38,6 +41,11 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private KafkaTemplate<String, CreateTransactionEvent> kafkaTemplate;
+
+    private static final String CREATE_TRANSACTION_TOPIC = "createTransaction";
+
     @Override
     @Transactional
     public AccountDTO createAccount(CreateAccountRequest request) {
@@ -46,7 +54,6 @@ public class AccountServiceImpl implements AccountService {
 
         User existingUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User with username: " + username + " not found."));
-
 
         Account account = new Account();
         account.setAccountNumber(request.getAccountNumber());
@@ -80,7 +87,10 @@ public class AccountServiceImpl implements AccountService {
         existingAccount.setBalance(updatedBalance);
 
         Account updatedAccount = accountRepository.save(existingAccount);
-        return accountMapper.toAccountDTO(updatedAccount);
+
+        AccountDTO result = accountMapper.toAccountDTO(updatedAccount);
+        sendCreateTransactionEvent(result, request.getAmount());
+        return result;
     }
 
     @Override
@@ -97,6 +107,14 @@ public class AccountServiceImpl implements AccountService {
         existingAccount.setBalance(updatedBalance);
 
         Account updatedAccount = accountRepository.save(existingAccount);
-        return accountMapper.toAccountDTO(updatedAccount);
+        AccountDTO result = accountMapper.toAccountDTO(updatedAccount);
+        sendCreateTransactionEvent(result, request.getAmount());
+        return result;
+    }
+
+    private void sendCreateTransactionEvent(AccountDTO accountDTO, BigDecimal amount) {
+        CreateTransactionEvent event = new CreateTransactionEvent(accountDTO, amount);
+
+        kafkaTemplate.send(CREATE_TRANSACTION_TOPIC, event);
     }
 }

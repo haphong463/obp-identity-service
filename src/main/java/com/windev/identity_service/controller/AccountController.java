@@ -27,10 +27,16 @@ public class AccountController {
                 HttpStatus.CREATED.value()), HttpStatus.CREATED);
     }
 
-    @PatchMapping
+    @PatchMapping("/deposit")
     public ResponseEntity<ApiResponse<AccountDTO>> deposit(@RequestBody DepositRequest request) {
         return new ResponseEntity<>(new ApiResponse<>(accountService.deposit(request),
                 HttpStatus.OK.value()), HttpStatus.OK);
+    }
+
+    @PatchMapping("/withdraw")
+    public ResponseEntity<ApiResponse<AccountDTO>> withDraw(@RequestBody DepositRequest request) {
+        return new ResponseEntity<>(new ApiResponse<>(accountService.withdraw(request), HttpStatus.OK.value()),
+                HttpStatus.OK);
     }
 
     @GetMapping("{accountNumber}")
@@ -38,4 +44,5 @@ public class AccountController {
         return new ResponseEntity<>(new ApiResponse<>(accountService.findByAccountNumber(accountNumber),
                 HttpStatus.OK.value()), HttpStatus.OK);
     }
+
 }

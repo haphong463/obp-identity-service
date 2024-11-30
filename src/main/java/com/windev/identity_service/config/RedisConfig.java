@@ -20,14 +20,14 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @EnableRedisRepositories
 public class RedisConfig {
 
-    @Value("${spring.redis.host}")
+    @Value("${spring.data.redis.host}")
     private String REDIS_HOST;
 
-    @Value("${spring.redis.port}")
+    @Value("${spring.data.redis.port}")
     private int REDIS_PORT;
 
     @Bean
-    public JedisConnectionFactory connectionFactory(){
+    public JedisConnectionFactory connectionFactory() {
         RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
         configuration.setPort(REDIS_PORT);
         configuration.setHostName(REDIS_HOST);
@@ -35,7 +35,7 @@ public class RedisConfig {
     }
 
     @Bean
-    @SuppressWarnings(value = {"unchecked", "rawtypes"})
+    @SuppressWarnings(value = { "unchecked", "rawtypes" })
     public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(connectionFactory);
